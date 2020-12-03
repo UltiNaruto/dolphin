@@ -61,6 +61,9 @@ namespace prime {
     case Game::PRIME_3_WII:
       run_mod_mp3();
       break;
+    case Game::FAR_CRY_VENGEANCE:
+      run_mod_fcv();
+      break;
     default:
       break;
     }
@@ -465,6 +468,32 @@ namespace prime {
     write32(0, cplayer_address + 0x174 + 0x18);
   }
 
+  void FpsControls::fcv_handle_cursor(bool lock)
+  {
+    u32 cursor_base = fcv_static.cursor_ptr_address;
+    if (lock)
+    {
+      write32(0, cursor_base + 0x20);
+      write32(0, cursor_base + 0x24);
+    }
+    else
+    {
+      handle_cursor(cursor_base + 0x20, cursor_base + 0x24, 0.95f, 0.90f);
+    }
+  }
+
+  void FpsControls::run_mod_fcv()
+  {
+    // Handles menu screen cursor
+    if (read32(mp3_static.cursor_dlg_enabled_address) == 0)
+    {
+      fcv_handle_cursor(false);
+      return;
+    }
+
+    // control camera
+  }
+
   void FpsControls::init_mod(Game game, Region region) {
     switch (game) {
     case Game::MENU:
@@ -487,6 +516,9 @@ namespace prime {
       break;
     case Game::PRIME_3_WII:
       init_mod_mp3_wii(region);
+      break;
+    case Game::FAR_CRY_VENGEANCE:
+      init_mod_fcv(region);
       break;
     }
     initialized = true;
@@ -1415,4 +1447,19 @@ namespace prime {
     powerups_offset = 0x58;
     has_beams = false;
   }
+
+  void FpsControls::init_mod_fcv(Region region)
+  {
+    if(region == Region::PAL)
+    {
+      // cursor update code nopped
+      code_changes.emplace_back(0x800a9748, 0x60000000);
+      code_changes.emplace_back(0x800a974c, 0x60000000);
+
+      fcv_static.cursor_dlg_enabled_address = 0x8068a82c;
+      fcv_static.cursor_ptr_address = 0x8067b760;
+      fcv.camera_ptr_address = 0x80eec9a0;
+    }
   }
+}
+

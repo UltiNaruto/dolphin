@@ -20,8 +20,9 @@ enum class Game : int {
   PRIME_2 = 2,
   PRIME_3 = 3,
   PRIME_3_WII = 4,
-  PRIME_1_GCN = 5,
-  PRIME_2_GCN = 6,
+  FAR_CRY_VENGEANCE = 5,
+  PRIME_1_GCN = 6,
+  PRIME_2_GCN = 7,
   MAX_VAL = PRIME_2_GCN,
 };
 

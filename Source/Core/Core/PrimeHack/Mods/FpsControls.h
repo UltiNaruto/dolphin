@@ -28,6 +28,7 @@ namespace prime {
     void handle_beam_visor_switch(std::array<int, 4> const &beams,
                                   std::array<std::tuple<int, int>, 4> const& visors);
     void mp3_handle_cursor(bool lock);
+    void fcv_handle_cursor(bool lock);
 
     void run_mod_menu(Region region);
     void run_mod_mp1(Region region);
@@ -35,6 +36,8 @@ namespace prime {
     void run_mod_mp3();
     void run_mod_mp1_gc();
     void run_mod_mp2_gc();
+
+    void run_mod_fcv();
 
     // ------------------------
     // -----Init Functions-----
@@ -55,6 +58,8 @@ namespace prime {
     void init_mod_mp1_gc(Region region);
     void init_mod_mp2_gc(Region region);
     void init_mod_mp3_wii(Region region);
+
+    void init_mod_fcv(Region region);
 
     // All 3 of these games have this in common (MP3 just ignores beams)
     u32 active_visor_offset;
@@ -113,6 +118,12 @@ namespace prime {
         u32 gun_lag_toc_offset;
         u32 motion_vtf_address;
       } mp3_static;
+
+      struct
+      {
+        u32 cursor_dlg_enabled_address;
+        u32 cursor_ptr_address;
+      } fcv_static;
     };
 
     // We store our pitch value interally to have full control over it
