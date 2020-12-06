@@ -283,7 +283,6 @@ namespace prime {
     const u32 orbit_state = read32(cplayer_address + 0x3a4);
     if (orbit_state != ORBIT_STATE_GRAPPLE &&
       orbit_state != 0) {
-      write32(0, cplayer_address + 0x1bc);
       return;
     }
 
