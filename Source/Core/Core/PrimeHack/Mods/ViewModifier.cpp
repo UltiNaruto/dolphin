@@ -134,15 +134,16 @@ void ViewModifier::run_mod_mp1_gc() {
   }
 
   // PAL added some stuff related to SFX in CActor, affects all derived
-  const u32 pal_offset = hack_mgr->get_active_region() == Region::PAL ? 0x10 : 0;
+  // since NTSC-J is based on PAL it also contains those
+  const u32 pal_ntsc_j_offset = (hack_mgr->get_active_region() == Region::PAL || hack_mgr->get_active_region() == Region::NTSC_J) ? 0x10 : 0;
 
   const u32 r13 = GPR(13);
   const float fov = std::min(GetFov(), 170.f);
-  writef32(fov, camera + 0x15c + pal_offset);
+  writef32(fov, camera + 0x15c + pal_ntsc_j_offset);
   writef32(fov, r13 + fov_fp_offset);
   writef32(fov, r13 + fov_tp_offset);
 
-  adjust_viewmodel(fov, gun_pos, camera + 0x160 + pal_offset,
+  adjust_viewmodel(fov, gun_pos, camera + 0x160 + pal_ntsc_j_offset,
     0x3d200000);
 
   set_code_group_state("culling", (GetCulling() || GetFov() > 101.f) ? ModState::ENABLED : ModState::DISABLED);
@@ -310,6 +311,9 @@ void ViewModifier::init_mod_mp1_gc(Region region) {
       add_code_change(0x80337a24, 0x38600001, "culling");
       add_code_change(0x80337a24 + 0x4, 0x4e800020, "culling");
     }
+  } else if (region == Region::NTSC_U) {
+    add_code_change(0x803222f8, 0x38600001, "culling");
+    add_code_change(0x803222f8 + 0x4, 0x4e800020, "culling");
   } else if (region == Region::PAL) {
     add_code_change(0x80320424, 0x38600001, "culling");
     add_code_change(0x80320424 + 0x4, 0x4e800020, "culling");

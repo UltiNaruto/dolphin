@@ -923,50 +923,60 @@ void FpsControls::add_control_state_hook_mp3(u32 start_point, Region region) {
 // Truly cursed
 void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_address, u32 apply_strafe_force_address, u32 disable_rotation_address, u32 clamp_cur_xy_vel_address, u32 max_speed_array_address) {
   u8 version = read8(0x80000007);
+  const u32 cplayer_offset = region == Region::PAL || region == Region::NTSC_J ? 0x10 : 0;
 
   // calculate side movement @ calculate_side_move_address
   // stwu r1, 0x18(r1) 
   // mfspr r0, LR
   // stw r0, 0x1c(r1)
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lwz r5, -0x5ee8(r13) 
   //   lwz r4, 0x2b0(r29)
-  // if PAL
-  //   lwz r5, -0x5e70(r13) 
+  // if PAL or NTSC-J
+  //   if NTSC-J
+  //     lwz r5, -0x5e98(r13)
+  //   if PAL
+  //     lwz r5, -0x5e70(r13) 
   //   lwz r4, 0x2c0(r29)
   // cmpwi r4, 2
   // li r4, 4
   // bne 0x8
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lwz r4, 0x2ac(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   lwz r4, 0x2bc(r29)
   // slwi r4, r4, 2 
   // add r3, r4, r5
   // lfs f1, 0x44(r3) 
   // lfs f2, 0x4(r3) 
   // fmuls f3, f2, f27
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f0, 0xe8(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   lfs f0, 0xf8(r29)
   // fmuls f1, f1, f0
   // fdivs f1, f1, f3
   // lfs f0, 0xa4(r3) 
   // stfs f0, 0x10(r1)
   // fmuls f1, f1, f0
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f0, -0x4260(r2)
+  // if NTSC-J
+  //   lfs f0, -0x4060(r2)
   // if PAL
   //   lfs f0, -0x4180(r2)
   // fcmpo cr0, f30, f0
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f0, -0x4238(r2)
+  // if NTSC-J
+  //   lfs f0, -0x4038(r2)
   // if PAL
   //   lfs f0, -0x4158(r2)
   // ble 0x8
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f0, -0x4280(r2)
+  // if NTSC-J
+  //   lfs f0, -0x4080(r2)
   // if PAL
   //   lfs f0, -0x41A0(r2)
   // fmuls f0, f0, f1
@@ -978,27 +988,34 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   // stfs f2, 0x14(r1)
   // addi r3, r1, 0x4
   // addi r4, r29, 0x34
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   addi r5, r29, 0x138
-  //   bl 0xFFD62D98
-  // if PAL
+  //   bl 0x80312a24
+  // if PAL or NTSC-J
   //   addi r5, r29, 0x148
-  //   bl 0xffe89b68
+  //   if PAL
+  //     bl 0x802fb7f4
+  //   if NTSC-J
+  //     bl 0x802fd6c8
   // lfs f0, 0x18(r1)
   // lfs f1, 0x4(r1)
   // fsubs f0, f0, f1
   // lfs f1, 0x10(r1) 
   // fdivs f0, f0, f1
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f1, -0x4238(r2)
+  // if NTSC-J
+  //   lfs f1, -0x4038(r2)
   // if PAL
   //   lfs f1, -0x4158(r2)
   // fcmpo cr0, f0, f1
   // bge 0xc
   // fmr f0, f1
   // b 0x14
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f1, -0x4280(r2)
+  // if NTSC-J
+  //   lfs f1, -0x4080(r2)
   // if PAL
   //   lfs f1, -0x41A0(r2)
   // fcmpo cr0, f0, f1
@@ -1016,37 +1033,23 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   if (region == Region::NTSC_U) {
     if (version == 0) {
       add_code_change(calculate_side_move_address + 0x0c, 0x80ada118);
-      add_code_change(calculate_side_move_address + 0x10, 0x809d02b0);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(calculate_side_move_address + 0x0c, 0x80ada168);
+  } else if (region == Region::PAL) {
     add_code_change(calculate_side_move_address + 0x0c, 0x80ada190);
-    add_code_change(calculate_side_move_address + 0x10, 0x809d02c0);
   }
+  add_code_change(calculate_side_move_address + 0x10, 0x809d02b0 + cplayer_offset);
   add_code_change(calculate_side_move_address + 0x14, 0x2c040002);
   add_code_change(calculate_side_move_address + 0x18, 0x38800004);
   add_code_change(calculate_side_move_address + 0x1c, 0x40820008);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(calculate_side_move_address + 0x20, 0x809d02ac);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(calculate_side_move_address + 0x20, 0x809d02bc);
-  }
+  add_code_change(calculate_side_move_address + 0x20, 0x809d02ac + cplayer_offset);
   add_code_change(calculate_side_move_address + 0x24, 0x5484103a);
   add_code_change(calculate_side_move_address + 0x28, 0x7c642a14);
   add_code_change(calculate_side_move_address + 0x2c, 0xc0230044);
   add_code_change(calculate_side_move_address + 0x30, 0xc0430004);
   add_code_change(calculate_side_move_address + 0x34, 0xec6206f2);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(calculate_side_move_address + 0x38, 0xc01d00e8);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(calculate_side_move_address + 0x38, 0xc01d00f8);
-  }
+  add_code_change(calculate_side_move_address + 0x38, 0xc01d00e8 + cplayer_offset);
   add_code_change(calculate_side_move_address + 0x3c, 0xec210032);
   add_code_change(calculate_side_move_address + 0x40, 0xec211824);
   add_code_change(calculate_side_move_address + 0x44, 0xc00300a4);
@@ -1056,8 +1059,9 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
     if (version == 0) {
       add_code_change(calculate_side_move_address + 0x50, 0xc002bda0);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(calculate_side_move_address + 0x50, 0xc002bfa0);
+  } else if (region == Region::PAL) {
     add_code_change(calculate_side_move_address + 0x50, 0xc002be80);
   }
   add_code_change(calculate_side_move_address + 0x54, 0xfc1e0040);
@@ -1065,8 +1069,9 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
     if (version == 0) {
       add_code_change(calculate_side_move_address + 0x58, 0xc002bdc8);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(calculate_side_move_address + 0x58, 0xc002bfc8);
+  } else if (region == Region::PAL) {
     add_code_change(calculate_side_move_address + 0x58, 0xc002bea8);
   }
   add_code_change(calculate_side_move_address + 0x5c, 0x40810008);
@@ -1074,8 +1079,9 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
     if (version == 0) {
       add_code_change(calculate_side_move_address + 0x60, 0xc002bd80);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(calculate_side_move_address + 0x60, 0xc002bf80);
+  } else if (region == Region::PAL) {
     add_code_change(calculate_side_move_address + 0x60, 0xc002be60);
   }
   add_code_change(calculate_side_move_address + 0x64, 0xec000072);
@@ -1087,14 +1093,14 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   add_code_change(calculate_side_move_address + 0x7c, 0xd0410014);
   add_code_change(calculate_side_move_address + 0x80, 0x38610004);
   add_code_change(calculate_side_move_address + 0x84, 0x389d0034);
+  add_code_change(calculate_side_move_address + 0x88, 0x38bd0138 + cplayer_offset);
   if (region == Region::NTSC_U) {
     if (version == 0) {
-      add_code_change(calculate_side_move_address + 0x88, 0x38bd0138);
       add_code_change(calculate_side_move_address + 0x8c, 0x4bd62d99);
     }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(calculate_side_move_address + 0x88, 0x38bd0148);
+  } else if (region == Region::NTSC_J) {
+    add_code_change(calculate_side_move_address + 0x8c, 0x4bd6463d);
+  } else if (region == Region::PAL) {
     add_code_change(calculate_side_move_address + 0x8c, 0x4be89b69);
   }
   add_code_change(calculate_side_move_address + 0x90, 0xc0010018);
@@ -1106,8 +1112,9 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
     if (version == 0) {
       add_code_change(calculate_side_move_address + 0xa4, 0xc022bdc8);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(calculate_side_move_address + 0xa4, 0xc022bfc8);
+  } else if (region == Region::PAL) {
     add_code_change(calculate_side_move_address + 0xa4, 0xc022bea8);
   }
   add_code_change(calculate_side_move_address + 0xa8, 0xfc000840);
@@ -1118,8 +1125,9 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
     if (version == 0) {
       add_code_change(calculate_side_move_address + 0xb8, 0xc022bd80);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(calculate_side_move_address + 0xb8, 0xc022bf80);
+  } else if (region == Region::PAL) {
     add_code_change(calculate_side_move_address + 0xb8, 0xc022be60);
   }
   add_code_change(calculate_side_move_address + 0xbc, 0xfc000840);
@@ -1133,9 +1141,12 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   add_code_change(calculate_side_move_address + 0xdc, 0x4e800020);
 
   // Apply strafe force instead of torque @ apply_strafe_force_address
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f1, -0x4260(r2)
   //   lfs f0, -0x41bc(r2)
+  // if NTSC-J
+  //   lfs f1, -0x4060(r2)
+  //   lfs f0, -0x3fbc(r2)
   // if PAL
   //   lfs f1, -0x4180(r2)
   //   lfs f0, -0x40dc(r2)
@@ -1143,16 +1154,21 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   // fabs f1, f1
   // fcmpo cr0, f1, f0
   // ble 0x2c
-  // if NTSC 0-00
-  //   bl 0x328624
-  //   bl 0xffd93f54
+  // if NTSC-U 0-00
+  //   bl 0x805afc00
+  //   bl 0x8001b534
+  // if NTSC-J
+  //   bl 0x80599000
+  //   bl 0x8001c1ac
   // if PAL
-  //   bl 0x1fd240
-  //   bl 0xffda74e0
+  //   bl 0x80471c00
+  //   bl 0x8001bea4
   // mr r5, r3
   // mr r3, r29
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f0, -0x4260(r2)
+  // if NTSC-J
+  //   lfs f0, -0x4060(r2)
   // if PAL
   //   lfs f0, -0x4180(r2)
   // stfs f1, 0x10(r1)
@@ -1164,8 +1180,10 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
       add_code_change(apply_strafe_force_address, 0xc022bda0);
       add_code_change(apply_strafe_force_address + 0x04, 0xc002be44);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(apply_strafe_force_address, 0xc022bfa0);
+    add_code_change(apply_strafe_force_address + 0x04, 0xc002c044);
+  } else if (region == Region::PAL) {
     add_code_change(apply_strafe_force_address, 0xc022be80);
     add_code_change(apply_strafe_force_address + 0x04, 0xc002bf24);
   }
@@ -1178,8 +1196,10 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
       add_code_change(apply_strafe_force_address + 0x18, 0x48328625);
       add_code_change(apply_strafe_force_address + 0x1c, 0x4bd93f55);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(apply_strafe_force_address + 0x18, 0x48322885);
+    add_code_change(apply_strafe_force_address + 0x1c, 0x4bda5a2d);
+  } else if (region == Region::PAL) {
     add_code_change(apply_strafe_force_address + 0x18, 0x481fd241);
     add_code_change(apply_strafe_force_address + 0x1c, 0x4bda74e1);
   }
@@ -1189,8 +1209,9 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
     if (version == 0) {
       add_code_change(apply_strafe_force_address + 0x28, 0xc002bda0);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(apply_strafe_force_address + 0x28, 0xc002be80);
+  } else if (region == Region::PAL) {
     add_code_change(apply_strafe_force_address + 0x28, 0xc002be80);
   }
   add_code_change(apply_strafe_force_address + 0x2c, 0xd0210010);
@@ -1215,18 +1236,20 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   // fmuls f0, f31, f31
   // fcmpo cr0, f0, f1
   // ble 0x128
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f0, 0x138(r29)
   //   lfs f1, 0x13c(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   lfs f0, 0x148(r29)
   //   lfs f1, 0x14c(r29)
   // fmuls f0, f0, f0
   // fmadds f1, f1, f1, f0
   // frsqrte f1, f1
   // fres f1, f1
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   addi r3, r2, -0x2040
+  // if NTSC-J
+  //   addi r3, r2, -0x1D20
   // if PAL
   //   addi r3, r2, -0x2180
   // slwi r0, r0, 2
@@ -1234,35 +1257,35 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   // lfs f0, 0(r3)
   // fcmpo cr0, f1, f0
   // ble 0xf8
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   lfs f3, 0xe8(r29)
   //   lfs f2, 0x138(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   lfs f3, 0xf8(r29)
   //   lfs f2, 0x148(r29)
   // fdivs f2, f2, f1
   // fmuls f2, f0, f2
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   stfs f2, 0x138(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   stfs f2, 0x148(r29)
   // fmuls f2, f3, f2
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   stfs f2, 0xfc(r29)
   //   lfs f2, 0x13c(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   stfs f2, 0x10c(r29)
   //   lfs f2, 0x14c(r29)
   // fdivs f2, f2, f1
   // fmuls f2, f0, f2
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   stfs f2, 0x13c(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   stfs f2, 0x14c(r29)
   // fmuls f2, f3, f2
-  // if NTSC 0-00
+  // if NTSC-U 0-00
   //   stfs f2, 0x100(r29)
-  // if PAL
+  // if PAL or NTSC-J
   //   stfs f2, 0x110(r29)
   // b 0xc0
   add_code_change(clamp_cur_xy_vel_address, 0xc0228140);
@@ -1272,16 +1295,8 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   add_code_change(clamp_cur_xy_vel_address + 0x10, 0xec1f07f2);
   add_code_change(clamp_cur_xy_vel_address + 0x14, 0xfc000840);
   add_code_change(clamp_cur_xy_vel_address + 0x18, 0x40810128);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(clamp_cur_xy_vel_address + 0x1c, 0xc01d0138);
-      add_code_change(clamp_cur_xy_vel_address + 0x20, 0xc01d013c);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(clamp_cur_xy_vel_address + 0x1c, 0xc01d0148);
-    add_code_change(clamp_cur_xy_vel_address + 0x20, 0xc01d014c);
-  }
+  add_code_change(clamp_cur_xy_vel_address + 0x1c, 0xc01d0138 + cplayer_offset);
+  add_code_change(clamp_cur_xy_vel_address + 0x20, 0xc01d013c + cplayer_offset);
   add_code_change(clamp_cur_xy_vel_address + 0x24, 0xec000032);
   add_code_change(clamp_cur_xy_vel_address + 0x28, 0xec21007a);
   add_code_change(clamp_cur_xy_vel_address + 0x2c, 0xfc200834);
@@ -1290,8 +1305,9 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
     if (version == 0) {
       add_code_change(clamp_cur_xy_vel_address + 0x34, 0x3862dfc0);
     }
-  }
-  else if (region == Region::PAL) {
+  } else if (region == Region::NTSC_J) {
+    add_code_change(clamp_cur_xy_vel_address + 0x34, 0x3862e2e0);
+  } else if (region == Region::PAL) {
     add_code_change(clamp_cur_xy_vel_address + 0x34, 0x3862de80);
   }
   add_code_change(clamp_cur_xy_vel_address + 0x38, 0x5400103a);
@@ -1299,56 +1315,19 @@ void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_
   add_code_change(clamp_cur_xy_vel_address + 0x40, 0xc0030000);
   add_code_change(clamp_cur_xy_vel_address + 0x44, 0xfc010040);
   add_code_change(clamp_cur_xy_vel_address + 0x48, 0x408100f8);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(clamp_cur_xy_vel_address + 0x4c, 0xc07d00e8);
-      add_code_change(clamp_cur_xy_vel_address + 0x50, 0xc05d0138);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(clamp_cur_xy_vel_address + 0x4c, 0xc07d00f8);
-    add_code_change(clamp_cur_xy_vel_address + 0x50, 0xc05d0148);
-  }
+  add_code_change(clamp_cur_xy_vel_address + 0x4c, 0xc07d00e8 + cplayer_offset);
+  add_code_change(clamp_cur_xy_vel_address + 0x50, 0xc05d0138 + cplayer_offset);
   add_code_change(clamp_cur_xy_vel_address + 0x54, 0xec420824);
   add_code_change(clamp_cur_xy_vel_address + 0x58, 0xec4000b2);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(clamp_cur_xy_vel_address + 0x5c, 0xd05d0138);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(clamp_cur_xy_vel_address + 0x5c, 0xd05d0148);
-  }
+  add_code_change(clamp_cur_xy_vel_address + 0x5c, 0xd05d0138 + cplayer_offset);
   add_code_change(clamp_cur_xy_vel_address + 0x60, 0xec4300b2);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(clamp_cur_xy_vel_address + 0x64, 0xd05d00fc);
-      add_code_change(clamp_cur_xy_vel_address + 0x68, 0xc05d013c);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(clamp_cur_xy_vel_address + 0x64, 0xd05d010c);
-    add_code_change(clamp_cur_xy_vel_address + 0x68, 0xc05d014c);
-  }
+  add_code_change(clamp_cur_xy_vel_address + 0x64, 0xd05d00fc + cplayer_offset);
+  add_code_change(clamp_cur_xy_vel_address + 0x68, 0xc05d013c + cplayer_offset);
   add_code_change(clamp_cur_xy_vel_address + 0x6c, 0xec420824);
   add_code_change(clamp_cur_xy_vel_address + 0x70, 0xec4000b2);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(clamp_cur_xy_vel_address + 0x74, 0xd05d013c);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(clamp_cur_xy_vel_address + 0x74, 0xd05d014c);
-  }
+  add_code_change(clamp_cur_xy_vel_address + 0x74, 0xd05d013c + cplayer_offset);
   add_code_change(clamp_cur_xy_vel_address + 0x78, 0xec4300b2);
-  if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(clamp_cur_xy_vel_address + 0x7c, 0xd05d0100);
-    }
-  }
-  else if (region == Region::PAL) {
-    add_code_change(clamp_cur_xy_vel_address + 0x7c, 0xd05d0110);
-  }
+  add_code_change(clamp_cur_xy_vel_address + 0x7c, 0xd05d0100 + cplayer_offset);
   add_code_change(clamp_cur_xy_vel_address + 0x80, 0x480000c0);
 
   // max speed values table @ max_speed_array_address
@@ -1466,6 +1445,26 @@ void FpsControls::init_mod_mp1_gc(Region region) {
 
       add_strafe_code_mp1_gc(Region::NTSC_U, 0x805afc00, 0x802875c4, 0x80286c88, 0x802872a4, 0x805afce0);
     }
+  } else if (region == Region::NTSC_J) {
+    add_code_change(0x8000fe3c, 0x48000048);
+    add_code_change(0x8000ed50, 0x60000000);
+    add_code_change(0x80015548, 0x4e800020);
+    add_code_change(0x8000ef54, 0x60000000);
+    add_code_change(0x80010010, 0x4800022c);
+    // Grapple point yaw fix
+    add_code_change(0x80170e24, 0x7fa3eb78);
+    add_code_change(0x80170e28, 0x38810064); // same as PAL
+    add_code_change(0x80170e2c, 0x4bee3f85); // bl 80054db0
+
+    // Show crosshair but don't consider pressing R button
+    add_code_change(0x80017b80, 0x3b000001, "show_crosshair"); // li r24, 1
+    add_code_change(0x80017b84, 0x8afd09d4, "show_crosshair"); // lbz r23, 0x9d4(r29)
+    add_code_change(0x80017b88, 0x53173672, "show_crosshair"); // rlwimi r23, r24, 6, 25, 25 (00000001)
+    add_code_change(0x80017b8c, 0x9afd09d4, "show_crosshair"); // stb r23, 0x9d4(r29)
+    add_code_change(0x80017b90, 0x4e800020, "show_crosshair"); // blr
+
+    // for now modify the area :S
+    add_strafe_code_mp1_gc(Region::NTSC_J, 0x80599000, 0x80276764, 0x80275e28, 0x80276444, 0x805990e0);
   } else if (region == Region::PAL) {
     add_code_change(0x8000fb4c, 0x48000048);  
     add_code_change(0x8000ea60, 0x60000000);

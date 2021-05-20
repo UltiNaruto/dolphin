@@ -103,11 +103,15 @@ void DisableHudMemoPopup::init_mod_mp1gc(Region region) {
     add_code_change(0x800e83bc, 0x48000018);
     add_code_change(0x800e83e4, vmc_fix_time);
     add_code_change(0x80064928, vmc_fix_justification);
+  } else if (region == Region::NTSC_J) {
+    add_code_change(0x800e14a0, 0x48000018);
+    add_code_change(0x800e14c8, vmc_fix_time);
+    add_code_change(0x800665d4, vmc_fix_justification);
   } else if (region == Region::PAL) {
     add_code_change(0x800e03c8, 0x48000018);
     add_code_change(0x800e03f0, vmc_fix_time);
     add_code_change(0x800657c4, vmc_fix_justification);
-  } else {}
+  } else { }
 }
 
 void DisableHudMemoPopup::init_mod_mp3(Game game, Region region) {

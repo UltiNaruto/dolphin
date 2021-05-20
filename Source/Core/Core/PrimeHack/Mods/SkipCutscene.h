@@ -26,6 +26,8 @@ public:
         } else if (version == 2) {
           add_return_one(0x8015204c);
         }
+      } else if (region == Region::NTSC_J) {
+        add_return_one(0x801c7a50);
       } else if (region == Region::PAL) {
         add_return_one(0x801c6640);
       }
