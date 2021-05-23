@@ -173,6 +173,7 @@ void HackManager::update_mod_states() {
 
   set_mod_enabled("auto_efb", UseMPAutoEFB());
   set_mod_enabled("cut_beam_fx_mp1", GetEnableSecondaryGunFX());
+  set_mod_enabled("springball_button", !settings.bEnablePrimeHack || get_active_game() >= Game::PRIME_1_GCN);
 
   if (settings.bEnableCheats) {
     set_mod_enabled("noclip", GetNoclip());
@@ -195,13 +196,11 @@ void HackManager::update_mod_states() {
   // Disallow any PrimeHack control mods
   if (!settings.bEnablePrimeHack) {
     disable_mod("fps_controls");
-    disable_mod("springball_button");
     disable_mod("context_sensitive_controls");
 
     return;
   } else {
     enable_mod("fps_controls");
-    enable_mod("springball_button");
 
     if (ImprovedMotionControls()) {
       enable_mod("context_sensitive_controls");

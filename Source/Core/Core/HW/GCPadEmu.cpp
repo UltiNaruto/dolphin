@@ -148,9 +148,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
 
-  //m_primehack_misc->controls.emplace_back(
-  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Spring Ball", "Spring Ball"));
-
+  m_primehack_misc->AddInput(ControllerEmu::Translatability::Translate, _trans("Spring Ball"));
 }
 
 std::string GCPad::GetName() const
@@ -303,10 +301,9 @@ bool GCPad::GetMicButton() const
   return m_mic->controls.back()->GetState<bool>();
 }
 
-// May introduce Springball into MP1-GC at some point.
 bool GCPad::CheckSpringBallCtrl()
 {
-  return false; //m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
+  return m_primehack_misc->controls[0].get()->GetState<bool>();
 }
 
 std::tuple<double, double> GCPad::GetPrimeStickXY()

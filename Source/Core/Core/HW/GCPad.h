@@ -42,6 +42,7 @@ bool CheckBack();
 bool CheckLeft();
 bool CheckRight();
 bool CheckJump();
+bool CheckSpringBall();
 
 std::tuple<double, double> GetPrimeStickXY();
 

@@ -48,6 +48,16 @@ void init_db(AddressDB& addr_db) {
   // camera UID = state mgr + 0x868
   // powerups = state mgr + 0x8b4
 
+  // bool __thiscall CPlayerState::HasPowerUp(EItemType)
+  addr_db.register_address(Game::PRIME_1_GCN, "player_has_powerup", 0x80091ac0, 0x80091e24, 0x80092d0c);
+  // bool __thiscall CMorphBall::IsMovementAllowed()
+  addr_db.register_address(Game::PRIME_1_GCN, "is_ball_movement_allowed", 0x800f8c98, 0x800f09d0, 0x800f1a3c);
+  // void __thiscall CMorphBall::ComputeBoostBallMovement(CFinalInput*, CStateManager*, float)
+  addr_db.register_address(Game::PRIME_1_GCN, "compute_boostball_movement", 0x800f43ac, 0x800ec1f8, 0x800ed264);
+  // void __thiscall CMorphBall::ComputeBallMovement(CFinalInput*, CStateManager*, float)
+  addr_db.register_address(Game::PRIME_1_GCN, "compute_ball_movement", 0x800f8d28, 0x800f0a60, 0x800f1acc);
+  // void __thiscall CPlayer::BombJump(float[3], CStateManager*)
+  addr_db.register_address(Game::PRIME_1_GCN, "player_bomb_jump", 0x802853ec, 0x80272788, 0x80274544);
   // float __thiscall CPlayer::StrafeInput(CFinalInput*)
   addr_db.register_address(Game::PRIME_1_GCN, "player_strafe_input", 0x80286c50, 0x80274034, 0x80275df0);
   // void __thiscall CPlayer::ComputeMovement(CFinalInput*, CStateManager*, float)
@@ -76,9 +86,9 @@ void init_db(AddressDB& addr_db) {
   // camera uid = camera mgr
   // player = state mgr + x84c
 
-  addr_db.register_address(Game::PRIME_2, "state_manager", 0x804e72e8, 0x804ee738, 0x804e94a0); // +1514 = camera mgr, +153c load state
+  addr_db.register_address(Game::PRIME_2, "state_manager", 0x804e72e8, 0x804ee738, 0x804e7ad8); // +1514 = camera mgr, +153c load state
   addr_db.register_address(Game::PRIME_2, "tweakgun", 0x805cb274, 0x805d2cdc, 0x805cba54);
-  addr_db.register_address(Game::PRIME_2, "world_id_ptr", 0x805081cc, 0x8050f76c);
+  addr_db.register_address(Game::PRIME_2, "world_id_ptr", 0x805081cc, 0x8050f76c, 0x80508974);
   addr_db.register_address(Game::PRIME_2, "control_flag", 0x805373f8, 0x8053ebf8, 0x80537bb8);
   addr_db.register_address(Game::PRIME_2, "beamvisor_menu_base", 0x805cb314, 0x805d2d80, 0x805cbaec);
   addr_db.register_address(Game::PRIME_2, "cursor_base", 0x805cb2c8, 0x805d2d30, 0x805cbaa0);
@@ -111,6 +121,17 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_2, "gun_holster_state", "player", {mrt1(0xEA8), mrt1(0x3A4)});
 
   // Strangely while the holster state is stored in CPlayer in MP1, in MP2 it is placed into a new class.
+
+  // bool __thiscall CPlayerState::HasPowerUp(EItemType)
+  addr_db.register_address(Game::PRIME_2_GCN, "player_has_powerup", 0x80085514, 0x80085650, 0x80086090);
+  // bool __thiscall CMorphBall::IsMovementAllowed()
+  addr_db.register_address(Game::PRIME_2_GCN, "is_ball_movement_allowed", 0x800ce7d0, 0x800ce8a8, 0x800cf5a4);
+  // void __thiscall CMorphBall::ComputeBoostBallMovement(CFinalInput*, CStateManager*, float)
+  addr_db.register_address(Game::PRIME_2_GCN, "compute_boostball_movement", 0x800c6b78, 0x800c6c50, 0x800c794c);
+  // void __thiscall CMorphBall::ComputeBallMovement(CFinalInput*, CStateManager*, float)
+  addr_db.register_address(Game::PRIME_2_GCN, "compute_ball_movement", 0x800ce864, 0x800ce93c, 0x800cf638);
+  // void __thiscall CPlayer::BombJump(float[3], CStateManager*)
+  addr_db.register_address(Game::PRIME_2_GCN, "player_bomb_jump", 0x80186838, 0x80186b1c, 0x80188338);
 
   addr_db.register_address(Game::PRIME_2_GCN, "state_manager", 0x803db6e0, 0x803dc900, 0x803de690);
   addr_db.register_address(Game::PRIME_2_GCN, "tweakgun_offset", -0x6e1c, -0x6e14, -0x6ddc);

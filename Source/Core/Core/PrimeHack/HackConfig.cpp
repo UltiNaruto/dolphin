@@ -83,6 +83,9 @@ void InitializeHack() {
 
   // Enable no PrimeHack control mods
   if (!SConfig::GetInstance().bEnablePrimeHack) {
+    if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+      hack_mgr.enable_mod("springball_button");
+    }
     return;
   }
 
@@ -109,7 +112,11 @@ bool CheckBeamScrollCtl(bool direction) {
 }
 
 bool CheckSpringBallCtl() {
-  return Wiimote::CheckSpringBall();
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    return Pad::CheckSpringBall();
+  } else {
+    return Wiimote::CheckSpringBall();
+  }
 }
 
 bool ImprovedMotionControls() {
