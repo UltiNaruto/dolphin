@@ -921,9 +921,16 @@ void FpsControls::add_control_state_hook_mp3(u32 start_point, Region region) {
 }
 
 // Truly cursed
-void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_address, u32 apply_strafe_force_address, u32 disable_rotation_address, u32 clamp_cur_xy_vel_address, u32 max_speed_array_address) {
+void FpsControls::add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_address) {
+  LOOKUP(player_strafe_input);
+  LOOKUP(player_compute_movement);
+
   u8 version = read8(0x80000007);
   const u32 cplayer_offset = region == Region::PAL || region == Region::NTSC_J ? 0x10 : 0;
+  const u32 apply_strafe_force_address = player_compute_movement + 0x650;
+  const u32 disable_rotation_address = player_strafe_input + 0x38;
+  const u32 clamp_cur_xy_vel_address = player_compute_movement + 0x330;
+  const u32 max_speed_array_address = calculate_side_move_address + 0xe0;
 
   // calculate side movement @ calculate_side_move_address
   // stwu r1, 0x18(r1) 
@@ -1443,7 +1450,7 @@ void FpsControls::init_mod_mp1_gc(Region region) {
       add_code_change(0x80016ef0, 0x9afd09c4, "show_crosshair"); // stb r23, 0x9c4(r29)
       add_code_change(0x80016ef4, 0x4e800020, "show_crosshair"); // blr
 
-      add_strafe_code_mp1_gc(Region::NTSC_U, 0x805afc00, 0x802875c4, 0x80286c88, 0x802872a4, 0x805afce0);
+      add_strafe_code_mp1_gc(Region::NTSC_U, 0x805afc00);
     }
   } else if (region == Region::NTSC_J) {
     add_code_change(0x8000fe3c, 0x48000048);
@@ -1464,7 +1471,7 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80017b90, 0x4e800020, "show_crosshair"); // blr
 
     // for now modify the area :S
-    add_strafe_code_mp1_gc(Region::NTSC_J, 0x80599000, 0x80276764, 0x80275e28, 0x80276444, 0x805990e0);
+    add_strafe_code_mp1_gc(Region::NTSC_J, 0x80599000);
   } else if (region == Region::PAL) {
     add_code_change(0x8000fb4c, 0x48000048);  
     add_code_change(0x8000ea60, 0x60000000);
@@ -1483,7 +1490,7 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80017884, 0x9afd09d4, "show_crosshair"); // stb r23, 0x9d4(r29)
     add_code_change(0x80017888, 0x4e800020, "show_crosshair"); // blr
 
-    add_strafe_code_mp1_gc(Region::PAL, 0x80471c00, 0x802749a8, 0x8027406c, 0x80274688, 0x80471ce0);
+    add_strafe_code_mp1_gc(Region::PAL, 0x80471c00);
   } else {}
 }
 

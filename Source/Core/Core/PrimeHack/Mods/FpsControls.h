@@ -53,7 +53,7 @@ private:
   void add_control_state_hook_mp3(u32 start_point, Region region);
   // Very large code, apologies for anyone who reads this
   // corresponding assembly is in comments :)
-  void add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_address, u32 apply_strafe_force_address, u32 disable_rotation_address, u32 clamp_cur_xy_vel_address, u32 max_speed_array_address);
+  void add_strafe_code_mp1_gc(Region region, u32 calculate_side_move_address);
 
   void init_mod_menu(Game game, Region region);
   void init_mod_mp1(Region region);

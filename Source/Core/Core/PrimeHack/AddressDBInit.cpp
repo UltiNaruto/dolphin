@@ -48,6 +48,11 @@ void init_db(AddressDB& addr_db) {
   // camera UID = state mgr + 0x868
   // powerups = state mgr + 0x8b4
 
+  // float __thiscall CPlayer::StrafeInput(CFinalInput*)
+  addr_db.register_address(Game::PRIME_1_GCN, "player_strafe_input", 0x80286c50, 0x80274034, 0x80275df0);
+  // void __thiscall CPlayer::ComputeMovement(CFinalInput*, CStateManager*, float)
+  addr_db.register_address(Game::PRIME_1_GCN, "player_compute_movement", 0x80286f74, 0x80274358, 0x80276114);
+
   addr_db.register_address(Game::PRIME_1_GCN, "state_manager", 0x8045a1a8, 0x803e2088, 0x80443030); // camera +x870
   addr_db.register_address(Game::PRIME_1_GCN, "fov_fp_offset", -0x7ff0, -0x7fe8, -0x7ff0);
   addr_db.register_address(Game::PRIME_1_GCN, "fov_tp_offset", -0x7fec, -0x7fe4, -0x7fec);
